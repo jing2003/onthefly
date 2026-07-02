@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import tripRoutes from "./routes/trips.js";
+import activityRoutes from "./routes/activities.js";
+import destinationRoutes from "./routes/destinations.js";
+import tripDestinationRoutes from "./routes/trips-destinations.js";
 
 const app = express();
 
