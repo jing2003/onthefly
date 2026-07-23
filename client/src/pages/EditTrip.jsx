@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams } from "react-router";
-import "./EditTrip.css";
+import { useParams } from "react-router-dom";
 
 const EditTrip = ({ data }) => {
   const { id } = useParams();
@@ -16,22 +15,25 @@ const EditTrip = ({ data }) => {
   });
 
   useEffect(() => {
-    const result = data.find((item) => item.id === parseInt(id));
-    if (!result) return;
-    setTrip({
-      id: parseInt(result.id),
-      title: result.title,
-      description: result.description,
-      img_url: result.img_url,
-      num_days: parseInt(result.num_days),
-      start_date: result.start_date.slice(0, 10),
-      end_date: result.end_date.slice(0, 10),
-      total_cost: result.total_cost,
-    });
+    const result = data.filter((item) => item.id === parseInt(id))[0];
+
+    if (result) {
+      setTrip({
+        id: parseInt(result.id),
+        title: result.title,
+        description: result.description,
+        img_url: result.img_url,
+        num_days: parseInt(result.num_days),
+        start_date: result.start_date.slice(0, 10),
+        end_date: result.end_date.slice(0, 10),
+        total_cost: result.total_cost,
+      });
+    }
   }, [data, id]);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
     setTrip((prev) => {
       return {
         ...prev,
@@ -51,10 +53,7 @@ const EditTrip = ({ data }) => {
       body: JSON.stringify(trip),
     };
 
-    const response = fetch("/api/trips/" + id, options);
-    if (!response.ok) {
-      throw new Error("Unable to update trip");
-    }
+    fetch("/api/trips/" + id, options);
     window.location.href = "/";
   };
 
@@ -65,98 +64,93 @@ const EditTrip = ({ data }) => {
       method: "DELETE",
     };
 
-    const response = fetch("/api/trips/" + id, options);
-    if (!response.ok) {
-      throw new Error("Unable to delete trip");
-    }
+    fetch("/api/trips/" + id, options);
     window.location.href = "/";
   };
 
   return (
-    <div>
-      <form>
-        <label>Title</label> <br />
-        <input
-          type="text"
-          id="title"
-          name="title"
-          value={trip.title}
-          onChange={handleChange}
-        />
-        <br />
-        <br />
-        <label>Description</label>
-        <br />
-        <textarea
-          rows="5"
-          cols="50"
-          id="description"
-          name="description"
-          value={trip.description}
-          onChange={handleChange}
-        ></textarea>
-        <br />
-        <label>Image URL </label>
-        <br />
-        <input
-          type="text"
-          id="img_url"
-          name="img_url"
-          value={trip.img_url}
-          onChange={handleChange}
-        />
-        <br />
-        <br />
-        <label>Number of Days</label>
-        <br />
-        <input
-          type="number"
-          id="num_days"
-          name="num_days"
-          value={trip.num_days}
-          onChange={handleChange}
-        />
-        <br />
-        <br />
-        <label>Start Date </label>
-        <br />
-        <input
-          type="text"
-          id="start_date"
-          name="start_date"
-          value={trip.start_date}
-          onChange={handleChange}
-        />
-        <br />
-        <br />
-        <label>End Date </label>
-        <br />
-        <input
-          type="text"
-          id="end_date"
-          name="end_date"
-          value={trip.end_date}
-          onChange={handleChange}
-        />
-        <br />
-        <br />
-        <label>Total Cost</label>
-        <br />
-        <input
-          type="text"
-          id="total_cost"
-          name="total_cost"
-          value={trip.total_cost}
-          onChange={handleChange}
-        />
-        <br />
-        <br />
-        <input type="submit" value="Submit" onClick={updateTrip} />
-        <button className="deleteButton" onClick={deleteTrip}>
-          Delete
-        </button>
-      </form>
-    </div>
+    <form>
+      <label>Title</label> <br />
+      <input
+        type="text"
+        id="title"
+        name="title"
+        value={trip.title}
+        onChange={handleChange}
+      />
+      <br />
+      <br />
+      <label>Description</label>
+      <br />
+      <textarea
+        rows="5"
+        cols="50"
+        id="description"
+        name="description"
+        value={trip.description}
+        onChange={handleChange}
+      ></textarea>
+      <br />
+      <label>Image URL</label>
+      <br />
+      <input
+        type="text"
+        id="img_url"
+        name="img_url"
+        value={trip.img_url}
+        onChange={handleChange}
+      />
+      <br />
+      <br />
+      <label>Number of Days</label>
+      <br />
+      <input
+        type="number"
+        id="num_days"
+        name="num_days"
+        value={trip.num_days}
+        onChange={handleChange}
+      />
+      <br />
+      <br />
+      <label>Start Date</label>
+      <br />
+      <input
+        type="text"
+        id="start_date"
+        name="start_date"
+        value={trip.start_date}
+        onChange={handleChange}
+      />
+      <br />
+      <br />
+      <label>End Date</label>
+      <br />
+      <input
+        type="text"
+        id="end_date"
+        name="end_date"
+        value={trip.end_date}
+        onChange={handleChange}
+      />
+      <br />
+      <br />
+      <label>Total Cost</label>
+      <br />
+      <input
+        type="text"
+        id="total_cost"
+        name="total_cost"
+        value={trip.total_cost}
+        onChange={handleChange}
+      />
+      <br />
+      <br />
+      <input type="submit" value="Submit" onClick={updateTrip} />
+      <button className="deleteButton" onClick={deleteTrip}>
+        Delete
+      </button>
+    </form>
   );
 };
 

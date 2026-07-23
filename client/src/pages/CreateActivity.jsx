@@ -1,6 +1,5 @@
 import { useState } from "react";
-import { useParams } from "react-router";
-import "./CreateActivity.css";
+import { useParams } from "react-router-dom";
 
 const CreateActivity = () => {
   const [activity, setActivity] = useState({ activity: "" });
@@ -8,6 +7,7 @@ const CreateActivity = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
     setActivity((prev) => {
       return {
         ...prev,
@@ -27,43 +27,38 @@ const CreateActivity = () => {
       body: JSON.stringify(activity),
     };
 
-    const response = await fetch("/api/activities/" + trip_id, options);
-    if (!response.ok) {
-      throw new Error("Unable to create activity");
-    }
+    fetch("/api/activities/" + trip_id, options);
     window.location.href = "/";
   };
 
   return (
-    <div>
+    <form>
       <center>
         <h3>Add Activity</h3>
       </center>
-      <form>
-        <label>Activity</label> <br />
-        <input
-          type="text"
-          id="activity"
-          name="activity"
-          value={activity.activity}
-          onChange={handleChange}
-        />
-        <br />
-        <br />
-        <label>Trip ID</label>
-        <br />
-        <input
-          type="number"
-          id="trip_id"
-          name="trip_id"
-          value={trip_id}
-          readOnly
-        />
-        <br />
-        <br />
-        <input type="submit" value="Submit" onClick={createActivity} />
-      </form>
-    </div>
+      <label>Activity</label> <br />
+      <input
+        type="text"
+        id="activity"
+        name="activity"
+        value={activity.activity}
+        onChange={handleChange}
+      />
+      <br />
+      <br />
+      <label>Trip ID</label>
+      <br />
+      <input
+        type="number"
+        id="trip_id"
+        name="trip_id"
+        value={trip_id}
+        readOnly
+      />
+      <br />
+      <br />
+      <input type="submit" value="Submit" onClick={createActivity} />
+    </form>
   );
 };
 

@@ -1,10 +1,9 @@
 import { useState } from "react";
-import "./ActivityBtn.css";
 
 const ActivityBtn = (props) => {
-  const [num_votes, setNumVotes] = useState(props.num_votes ?? 0);
+  const [num_votes, setNumVotes] = useState(props.num_votes);
 
-  const updateCount = async () => {
+  const updateCount = () => {
     const options = {
       method: "PATCH",
       headers: {
@@ -13,10 +12,7 @@ const ActivityBtn = (props) => {
       body: JSON.stringify({ num_votes: num_votes + 1 }),
     };
 
-    const response = fetch("/api/activities/" + props.id, options);
-    if (!response.ok) {
-      throw new Error("Unable to update activity vote count");
-    }
+    fetch("/api/activities/" + props.id, options);
     setNumVotes((num_votes) => num_votes + 1);
   };
 

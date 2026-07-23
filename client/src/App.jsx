@@ -1,6 +1,5 @@
-import "./App.css";
 import { useState, useEffect } from "react";
-import { Link, useRoutes } from "react-router-dom";
+import { useRoutes, Link } from "react-router-dom";
 import ReadTrips from "./pages/ReadTrips";
 import CreateTrip from "./pages/CreateTrip";
 import EditTrip from "./pages/EditTrip";
@@ -21,27 +20,19 @@ const App = () => {
       setTrips(data);
     };
 
-    fetchTrips();
-  }, []);
-
-  useEffect(() => {
     const fetchDestinations = async () => {
       const response = await fetch("/api/destinations");
       const data = await response.json();
       setDestinations(data);
     };
 
+    fetchTrips();
     fetchDestinations();
   }, []);
 
-  // Sets up routes
   let element = useRoutes([
     {
       path: "/",
-      element: <ReadTrips data={trips} />,
-    },
-    {
-      path: "/trips",
       element: <ReadTrips data={trips} />,
     },
     {
@@ -85,9 +76,10 @@ const App = () => {
           <button className="headerBtn">Explore Destinations</button>
         </Link>
         <Link to="/trip/new">
-          <button className="headerBtn"> + Add Trip </button>
+          <button className="headerBtn">+ Add Trip</button>
         </Link>
       </div>
+
       {element}
     </div>
   );

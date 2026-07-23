@@ -1,5 +1,4 @@
 import { useState } from "react";
-import "./CreateTrip.css";
 
 const CreateTrip = () => {
   const [trip, setTrip] = useState({
@@ -15,6 +14,7 @@ const CreateTrip = () => {
 
   const handleChange = (event) => {
     const { name, value } = event.target;
+
     setTrip((prev) => {
       return {
         ...prev,
@@ -23,7 +23,7 @@ const CreateTrip = () => {
     });
   };
 
-  const createTrip = async (event) => {
+  const createTrip = (event) => {
     event.preventDefault();
 
     const options = {
@@ -34,10 +34,7 @@ const CreateTrip = () => {
       body: JSON.stringify(trip),
     };
 
-    const response = await fetch("/api/trips", options);
-    if (!response.ok) {
-      throw new Error("Unable to create trip");
-    }
+    fetch("/api/trips", options);
     window.location.href = "/";
   };
 
@@ -68,7 +65,7 @@ const CreateTrip = () => {
           onChange={handleChange}
         ></textarea>
         <br />
-        <label>Image URL </label>
+        <label>Image URL</label>
         <br />
         <input
           type="text"
@@ -90,7 +87,7 @@ const CreateTrip = () => {
         />
         <br />
         <br />
-        <label>Start Date </label>
+        <label>Start Date</label>
         <br />
         <input
           type="text"
@@ -101,7 +98,7 @@ const CreateTrip = () => {
         />
         <br />
         <br />
-        <label>End Date </label>
+        <label>End Date</label>
         <br />
         <input
           type="text"

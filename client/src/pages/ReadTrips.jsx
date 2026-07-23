@@ -1,9 +1,9 @@
 import Card from "../components/Card";
 
-const ReadTrips = ({ data }) => {
+const ReadTrips = ({ data = [] }) => {
   return (
     <div className="ReadTrips">
-      {data && data.length > 0 ? (
+      {data.length > 0 ? (
         data.map((trip) => (
           <Card
             key={trip.id}

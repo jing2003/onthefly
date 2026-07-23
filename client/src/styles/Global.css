@@ -1,33 +1,40 @@
+body {
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 .App {
-  font-family:Avenir, "Century Gothic", sans-serif;
-  font-weight:100; 
-  font-style:normal;
+  font-family: Avenir, "Century Gothic", sans-serif;
+  font-weight: 100;
+  font-style: normal;
   font-size: calc(10px + 2vmin);
-  color: #373D3F;
+  color: #373d3f;
   justify-content: center;
-  background-image: url('background.jpg');
+  background-image: url("../assets/background.jpg");
   background-color: #97bfd8a3;
   background-position: right center;
   background-size: cover;
-  padding:20px;
+  padding: 20px;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
   align-items: center;
   justify-content: center;
 
-
   min-height: 800px;
   background-attachment: fixed;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  
 }
 
 .header {
   width: 100%;
-  color: #373D3F;
+  color: #373d3f;
   text-align: center;
 }
 
@@ -36,7 +43,7 @@
   margin-right: 10px;
 }
 
-.ReadTrips {
+.ReadPosts {
   display: grid;
   grid-auto-flow: row;
 
@@ -50,12 +57,12 @@ button {
   font-size: 15px;
   font-weight: 500;
   font-family: inherit;
-  color:373D3F;
+  color: 373D3F;
   cursor: pointer;
   transition: border-color 0.25s;
 }
 .headerBtn:hover {
   background-color: #97bfd8;
-  transition: all .7s ease;
-  -webkit-transition: all .7s ease;
+  transition: all 0.7s ease;
+  -webkit-transition: all 0.7s ease;
 }
