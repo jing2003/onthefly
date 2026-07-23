@@ -23,7 +23,7 @@ const createTrip = async (req, res) => {
     res.status(201).json(results.rows[0]);
     console.log("🆕 new trip created");
   } catch (error) {
-    response.status(409).json({ error: error.message });
+    res.status(409).json({ error: error.message });
     console.log("Error:", error.message);
   }
 };

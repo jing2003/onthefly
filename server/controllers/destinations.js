@@ -3,7 +3,7 @@ import { pool } from "../config/database.js";
 const createDestination = async (req, res) => {
   try {
     const { destination, description, city, country, img_url, flag_img_url } =
-      request.body;
+      req.body;
 
     const results = await pool.query(
       `
