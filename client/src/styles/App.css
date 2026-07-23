@@ -8,6 +8,7 @@
    Reusable UI components
 ======================================== */
 
+@import "./Avatar.css";
 @import "./ActivityBtn.css";
 @import "./Card.css";
 @import "./DestinationBtn.css";

@@ -150,6 +150,43 @@
   border-radius: 10px;
 }
 
+.travelers {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.traveler-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--pico-muted-border-color);
+  border-radius: 8px;
+}
+
+.traveler-avatar-placeholder {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-weight: 700;
+  background-color: var(--pico-primary-background);
+  color: var(--pico-primary-inverse);
+}
+
+.traveler-username {
+  font-weight: 600;
+}
+
+.trip-error-message {
+  margin: 16px 0;
+  padding: 12px;
+  border-radius: 8px;
+}
+
 @media (max-width: 800px) {
   .trip-overview,
   .trip-content-grid {

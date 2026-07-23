@@ -1,5 +1,6 @@
-import { useState, useEffect } from "react";
-import { useRoutes, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { Link, useRoutes } from "react-router-dom";
+
 import ReadTrips from "./pages/ReadTrips";
 import CreateTrip from "./pages/CreateTrip";
 import EditTrip from "./pages/EditTrip";
@@ -8,78 +9,183 @@ import ReadDestinations from "./pages/ReadDestinations";
 import TripDetails from "./pages/TripDetails";
 import CreateActivity from "./pages/CreateActivity";
 import AddToTrip from "./pages/AddToTrip";
+import Login from "./pages/Login";
+import AddUserToTrip from "./pages/AddUserToTrip";
+
+import Avatar from "./components/Avatar";
+
+const Header = ({ user, logout }) => {
+  return (
+    <header className="header">
+      <h1>On The Fly ✈️</h1>
+
+      <nav>
+        <Link to="/">
+          <button type="button" className="headerBtn">
+            Explore Trips
+          </button>
+        </Link>
+
+        <Link to="/destinations">
+          <button type="button" className="headerBtn">
+            Explore Destinations
+          </button>
+        </Link>
+
+        <Link to="/trip/new">
+          <button type="button" className="headerBtn">
+            + Add Trip
+          </button>
+        </Link>
+      </nav>
+
+      <div className="header-user">
+        <Avatar className="avatar" user={user} />
+
+        <span className="header-username">{user.username}</span>
+
+        <button type="button" className="headerBtn" onClick={logout}>
+          Logout
+        </button>
+      </div>
+    </header>
+  );
+};
 
 const App = () => {
   const [trips, setTrips] = useState([]);
   const [destinations, setDestinations] = useState([]);
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
 
   useEffect(() => {
-    const fetchTrips = async () => {
-      const response = await fetch("/api/trips");
-      const data = await response.json();
-      setTrips(data);
+    const getUser = async () => {
+      try {
+        const response = await fetch("/auth/login/success", {
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          setUser(null);
+          return;
+        }
+
+        const data = await response.json();
+        setUser(data.user ?? null);
+      } catch (error) {
+        console.error("Unable to retrieve authenticated user:", error.message);
+
+        setUser(null);
+      } finally {
+        setAuthLoading(false);
+      }
     };
 
-    const fetchDestinations = async () => {
-      const response = await fetch("/api/destinations");
-      const data = await response.json();
-      setDestinations(data);
+    const fetchAppData = async () => {
+      try {
+        const [tripsResponse, destinationsResponse] = await Promise.all([
+          fetch("/api/trips"),
+          fetch("/api/destinations"),
+        ]);
+
+        if (!tripsResponse.ok) {
+          throw new Error("Unable to fetch trips.");
+        }
+
+        if (!destinationsResponse.ok) {
+          throw new Error("Unable to fetch destinations.");
+        }
+
+        const [tripsData, destinationsData] = await Promise.all([
+          tripsResponse.json(),
+          destinationsResponse.json(),
+        ]);
+
+        setTrips(tripsData);
+        setDestinations(destinationsData);
+      } catch (error) {
+        console.error("Unable to load application data:", error.message);
+      }
     };
 
-    fetchTrips();
-    fetchDestinations();
+    getUser();
+    fetchAppData();
   }, []);
 
-  let element = useRoutes([
+  const logout = async () => {
+    try {
+      const response = await fetch("/auth/logout", {
+        method: "GET",
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to log out.");
+      }
+
+      setUser(null);
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Logout failed:", error.message);
+    }
+  };
+
+  const protectedPage = (page) => {
+    if (authLoading) {
+      return (
+        <main>
+          <p>Checking login status...</p>
+        </main>
+      );
+    }
+
+    return user?.id ? page : <Login />;
+  };
+
+  const element = useRoutes([
     {
       path: "/",
-      element: <ReadTrips data={trips} />,
+      element: protectedPage(<ReadTrips user={user} data={trips} />),
     },
     {
       path: "/trip/new",
-      element: <CreateTrip />,
+      element: protectedPage(<CreateTrip user={user} />),
     },
     {
       path: "/edit/:id",
-      element: <EditTrip data={trips} />,
+      element: protectedPage(<EditTrip user={user} data={trips} />),
     },
     {
       path: "/destinations",
-      element: <ReadDestinations data={destinations} />,
+      element: protectedPage(
+        <ReadDestinations user={user} data={destinations} />,
+      ),
     },
     {
       path: "/trip/get/:id",
-      element: <TripDetails data={trips} />,
+      element: protectedPage(<TripDetails user={user} data={trips} />),
     },
     {
       path: "/destination/new/:trip_id",
-      element: <CreateDestination />,
+      element: protectedPage(<CreateDestination user={user} />),
     },
     {
       path: "/activity/create/:trip_id",
-      element: <CreateActivity />,
+      element: protectedPage(<CreateActivity user={user} />),
     },
     {
       path: "/destinations/add/:destination_id",
-      element: <AddToTrip data={trips} />,
+      element: protectedPage(<AddToTrip user={user} data={trips} />),
+    },
+    {
+      path: "/users/add/:trip_id",
+      element: protectedPage(<AddUserToTrip user={user} />),
     },
   ]);
 
   return (
     <div className="App">
-      <div className="header">
-        <h1>On The Fly ✈️</h1>
-        <Link to="/">
-          <button className="headerBtn">Explore Trips</button>
-        </Link>
-        <Link to="/destinations">
-          <button className="headerBtn">Explore Destinations</button>
-        </Link>
-        <Link to="/trip/new">
-          <button className="headerBtn">+ Add Trip</button>
-        </Link>
-      </div>
-
+      {user?.id && <Header user={user} logout={logout} />}
       {element}
     </div>
   );

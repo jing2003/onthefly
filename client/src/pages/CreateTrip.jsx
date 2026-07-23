@@ -1,61 +1,93 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
-const CreateTrip = () => {
+const CreateTrip = ({ user }) => {
+  const navigate = useNavigate();
+
   const [trip, setTrip] = useState({
-    id: 0,
     title: "",
     description: "",
     img_url: "",
     num_days: 0,
     start_date: "",
     end_date: "",
-    total_cost: 0.0,
+    total_cost: 0,
+    username: user?.username ?? "",
   });
+
+  const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
 
-    setTrip((prev) => {
-      return {
-        ...prev,
-        [name]: value,
-      };
-    });
+    setTrip((previousTrip) => ({
+      ...previousTrip,
+      [name]: value,
+    }));
   };
 
-  const createTrip = (event) => {
+  const createTrip = async (event) => {
     event.preventDefault();
 
-    const options = {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(trip),
-    };
+    if (!user?.username) {
+      setError("You must be logged in to create a trip.");
+      return;
+    }
 
-    fetch("/api/trips", options);
-    window.location.href = "/";
+    try {
+      setIsSubmitting(true);
+      setError("");
+
+      const response = await fetch("/api/trips", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          ...trip,
+          username: user.username,
+          num_days: Number(trip.num_days),
+          total_cost: Number(trip.total_cost),
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Unable to create trip.");
+      }
+
+      navigate(`/trip/get/${data.id}`);
+      window.location.reload();
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div>
-      <center>
-        <h3> Create New Trip</h3>
-      </center>
-      <form>
-        <label>Title</label> <br />
+    <main>
+      <div>
+        <h3>Create New Trip</h3>
+      </div>
+
+      <form onSubmit={createTrip}>
+        <label htmlFor="title">Title</label>
+
         <input
           type="text"
           id="title"
           name="title"
           value={trip.title}
           onChange={handleChange}
+          required
         />
-        <br />
-        <br />
-        <label>Description</label>
-        <br />
+
+        <label htmlFor="description">Description</label>
+
         <textarea
           rows="5"
           cols="50"
@@ -63,66 +95,77 @@ const CreateTrip = () => {
           name="description"
           value={trip.description}
           onChange={handleChange}
-        ></textarea>
-        <br />
-        <label>Image URL</label>
-        <br />
+          required
+        />
+
+        <label htmlFor="img_url">Image URL</label>
+
         <input
-          type="text"
+          type="url"
           id="img_url"
           name="img_url"
           value={trip.img_url}
           onChange={handleChange}
         />
-        <br />
-        <br />
-        <label>Number of Days</label>
-        <br />
+
+        <label htmlFor="num_days">Number of Days</label>
+
         <input
           type="number"
           id="num_days"
           name="num_days"
+          min="1"
           value={trip.num_days}
           onChange={handleChange}
+          required
         />
-        <br />
-        <br />
-        <label>Start Date</label>
-        <br />
+
+        <label htmlFor="start_date">Start Date</label>
+
         <input
-          type="text"
+          type="date"
           id="start_date"
           name="start_date"
           value={trip.start_date}
           onChange={handleChange}
+          required
         />
-        <br />
-        <br />
-        <label>End Date</label>
-        <br />
+
+        <label htmlFor="end_date">End Date</label>
+
         <input
-          type="text"
+          type="date"
           id="end_date"
           name="end_date"
           value={trip.end_date}
           onChange={handleChange}
+          required
         />
-        <br />
-        <br />
-        <label>Total Cost</label>
-        <br />
+
+        <label htmlFor="total_cost">Total Cost</label>
+
         <input
-          type="text"
+          type="number"
           id="total_cost"
           name="total_cost"
+          min="0"
+          step="0.01"
           value={trip.total_cost}
           onChange={handleChange}
+          required
         />
-        <br />
-        <br />
-        <input type="submit" value="Submit" onClick={createTrip} />
+
+        {error && (
+          <p role="alert" className="error-message">
+            {error}
+          </p>
+        )}
+
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? "Creating..." : "Create Trip"}
+        </button>
       </form>
-    </div>
+    </main>
   );
 };
 

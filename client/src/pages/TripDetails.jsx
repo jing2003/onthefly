@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
+
 import ActivityBtn from "../components/ActivityBtn";
 import DestinationBtn from "../components/DestinationBtn";
 
@@ -8,6 +9,10 @@ const TripDetails = ({ data = [] }) => {
 
   const [activities, setActivities] = useState([]);
   const [destinations, setDestinations] = useState([]);
+  const [travelers, setTravelers] = useState([]);
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
 
   const [trip, setTrip] = useState({
     id: 0,
@@ -40,26 +45,45 @@ const TripDetails = ({ data = [] }) => {
   useEffect(() => {
     const fetchTripDetails = async () => {
       try {
-        const [activitiesResponse, destinationsResponse] = await Promise.all([
-          fetch(`/api/activities/${id}`),
-          fetch(`/api/trips-destinations/destinations/${id}`),
-        ]);
+        setIsLoading(true);
+        setLoadError("");
+
+        const [activitiesResponse, destinationsResponse, travelersResponse] =
+          await Promise.all([
+            fetch(`/api/activities/${id}`),
+            fetch(`/api/trips-destinations/destinations/${id}`),
+            fetch(`/api/users-trips/users/${id}`, {
+              credentials: "include",
+            }),
+          ]);
 
         if (!activitiesResponse.ok) {
-          throw new Error("Failed to fetch activities");
+          throw new Error("Failed to fetch activities.");
         }
 
         if (!destinationsResponse.ok) {
-          throw new Error("Failed to fetch destinations");
+          throw new Error("Failed to fetch destinations.");
         }
 
-        const activitiesData = await activitiesResponse.json();
-        const destinationsData = await destinationsResponse.json();
+        if (!travelersResponse.ok) {
+          throw new Error("Failed to fetch travelers.");
+        }
+
+        const [activitiesData, destinationsData, travelersData] =
+          await Promise.all([
+            activitiesResponse.json(),
+            destinationsResponse.json(),
+            travelersResponse.json(),
+          ]);
 
         setActivities(activitiesData);
         setDestinations(destinationsData);
+        setTravelers(travelersData);
       } catch (error) {
         console.error("Error loading trip details:", error);
+        setLoadError(error.message);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -71,12 +95,14 @@ const TripDetails = ({ data = [] }) => {
       <section className="trip-overview">
         <div className="trip-information">
           <span className="trip-label">Trip details</span>
+
           <h1>{trip.title}</h1>
 
           <div className="trip-metadata">
             <span>
               🗓️ {trip.num_days} {trip.num_days === 1 ? "day" : "days"}
             </span>
+
             <span>🛫 {trip.start_date}</span>
             <span>🛬 {trip.end_date}</span>
           </div>
@@ -97,6 +123,12 @@ const TripDetails = ({ data = [] }) => {
         </div>
       </section>
 
+      {loadError && (
+        <p className="trip-error-message" role="alert">
+          {loadError}
+        </p>
+      )}
+
       <section className="trip-content-grid">
         <div className="trip-content-section">
           <div className="trip-section-header">
@@ -111,7 +143,9 @@ const TripDetails = ({ data = [] }) => {
           </div>
 
           <div className="trip-item-list">
-            {activities.length > 0 ? (
+            {isLoading ? (
+              <p className="trip-empty-message">Loading activities...</p>
+            ) : activities.length > 0 ? (
               activities.map((activity) => (
                 <ActivityBtn
                   key={activity.id}
@@ -141,7 +175,9 @@ const TripDetails = ({ data = [] }) => {
           </div>
 
           <div className="trip-item-list">
-            {destinations.length > 0 ? (
+            {isLoading ? (
+              <p className="trip-empty-message">Loading destinations...</p>
+            ) : destinations.length > 0 ? (
               destinations.map((destination) => (
                 <DestinationBtn
                   key={destination.id}
@@ -152,6 +188,44 @@ const TripDetails = ({ data = [] }) => {
             ) : (
               <p className="trip-empty-message">
                 No destinations have been added yet.
+              </p>
+            )}
+          </div>
+        </div>
+
+        <div className="trip-content-section">
+          <div className="trip-section-header">
+            <div>
+              <span className="trip-section-label">Travel group</span>
+              <h2>Travelers</h2>
+            </div>
+
+            <Link className="trip-add-link" to={`/users/add/${id}`}>
+              + Add Traveler
+            </Link>
+          </div>
+
+          <div className="trip-item-list travelers">
+            {isLoading ? (
+              <p className="trip-empty-message">Loading travelers...</p>
+            ) : travelers.length > 0 ? (
+              travelers.map((traveler) => (
+                <div
+                  className="traveler-item"
+                  key={
+                    traveler.id ?? `${traveler.trip_id}-${traveler.username}`
+                  }
+                >
+                  <span className="traveler-avatar-placeholder">
+                    {traveler.username?.charAt(0).toUpperCase()}
+                  </span>
+
+                  <span className="traveler-username">{traveler.username}</span>
+                </div>
+              ))
+            ) : (
+              <p className="trip-empty-message">
+                No travelers have been added yet.
               </p>
             )}
           </div>

@@ -1,6 +1,8 @@
 import { pool } from "../config/database.js";
 
 const createTrip = async (req, res) => {
+  const client = await pool.connect();
+
   try {
     const {
       title,
@@ -10,42 +12,116 @@ const createTrip = async (req, res) => {
       start_date,
       end_date,
       total_cost,
+      username,
     } = req.body;
 
-    const results = await pool.query(
+    if (!title?.trim()) {
+      return res.status(400).json({
+        error: "A trip title is required.",
+      });
+    }
+
+    if (!username?.trim()) {
+      return res.status(400).json({
+        error: "An authenticated username is required.",
+      });
+    }
+
+    await client.query("BEGIN");
+
+    const tripResults = await client.query(
       `
-            INSERT INTO trips (title, description, img_url, num_days, start_date, end_date, total_cost)
-            VALUES($1, $2, $3, $4, $5, $6, $7)
-            RETURNING *`,
-      [title, description, img_url, num_days, start_date, end_date, total_cost],
+        INSERT INTO trips (
+          title,
+          description,
+          img_url,
+          num_days,
+          start_date,
+          end_date,
+          total_cost
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+      `,
+      [
+        title.trim(),
+        description,
+        img_url,
+        num_days,
+        start_date,
+        end_date,
+        total_cost,
+      ],
     );
 
-    res.status(201).json(results.rows[0]);
-    console.log("🆕 new trip created");
+    const newTrip = tripResults.rows[0];
+
+    await client.query(
+      `
+        INSERT INTO users_trips (trip_id, username)
+        VALUES ($1, $2)
+        RETURNING *
+      `,
+      [newTrip.id, username.trim()],
+    );
+
+    await client.query("COMMIT");
+
+    console.log("🆕 New trip created and creator added as traveler");
+
+    return res.status(201).json(newTrip);
   } catch (error) {
-    res.status(409).json({ error: error.message });
-    console.log("Error:", error.message);
+    await client.query("ROLLBACK");
+
+    console.error("🚫 Unable to create trip:", error.message);
+
+    return res.status(409).json({
+      error: error.message,
+    });
+  } finally {
+    client.release();
   }
 };
 
 const getTrips = async (req, res) => {
   try {
     const results = await pool.query("SELECT * FROM trips ORDER BY id ASC");
-    res.status(200).json(results.rows);
+
+    return res.status(200).json(results.rows);
   } catch (error) {
-    res.status(409).json({ error: error.message });
-    console.log("🚫 Unable to GET all trips - Error:", error.message);
+    console.error("🚫 Unable to get all trips:", error.message);
+
+    return res.status(409).json({
+      error: error.message,
+    });
   }
 };
 
 const getTrip = async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = Number.parseInt(req.params.id, 10);
+
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        error: "A valid trip ID is required.",
+      });
+    }
+
     const results = await pool.query("SELECT * FROM trips WHERE id = $1", [id]);
-    res.status(200).json(results.rows[0]);
+
+    if (results.rows.length === 0) {
+      return res.status(404).json({
+        error: "Trip not found.",
+      });
+    }
+
+    return res.status(200).json(results.rows[0]);
   } catch (error) {
-    res.status(409).json({ error: error.message });
-    console.log("🚫 Unable to get trip - Error:", error.message);
+    console.error("🚫 Unable to get trip:", error.message);
+
+    return res.status(409).json({
+      error: error.message,
+    });
   }
 };
 
@@ -60,11 +136,29 @@ const updateTrip = async (req, res) => {
       end_date,
       total_cost,
     } = req.body;
-    const id = parseInt(req.params.id);
+
+    const id = Number.parseInt(req.params.id, 10);
+
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        error: "A valid trip ID is required.",
+      });
+    }
 
     const results = await pool.query(
       `
-            UPDATE trips SET title = $1, description = $2, img_url = $3, num_days = $4, start_date = $5, end_date = $6, total_cost= $7 WHERE id = $8`,
+        UPDATE trips
+        SET
+          title = $1,
+          description = $2,
+          img_url = $3,
+          num_days = $4,
+          start_date = $5,
+          end_date = $6,
+          total_cost = $7
+        WHERE id = $8
+        RETURNING *
+      `,
       [
         title,
         description,
@@ -77,27 +171,77 @@ const updateTrip = async (req, res) => {
       ],
     );
 
-    res.status(200).json(results.rows);
-    console.log("✨ trip updated");
+    if (results.rows.length === 0) {
+      return res.status(404).json({
+        error: "Trip not found.",
+      });
+    }
+
+    console.log("✨ Trip updated");
+
+    return res.status(200).json(results.rows[0]);
   } catch (error) {
-    res.status(409).json({ error: error.message });
-    console.log("🚫 Unable to update trip - Error:", error.message);
+    console.error("🚫 Unable to update trip:", error.message);
+
+    return res.status(409).json({
+      error: error.message,
+    });
   }
 };
 
 const deleteTrip = async (req, res) => {
-  const id = parseInt(req.params.id);
+  const client = await pool.connect();
 
   try {
-    const activity_deletion = await pool.query(
-      "DELETE FROM activities WHERE trip_id = $1",
+    const id = Number.parseInt(req.params.id, 10);
+
+    if (Number.isNaN(id)) {
+      return res.status(400).json({
+        error: "A valid trip ID is required.",
+      });
+    }
+
+    await client.query("BEGIN");
+
+    await client.query("DELETE FROM activities WHERE trip_id = $1", [id]);
+
+    await client.query("DELETE FROM users_trips WHERE trip_id = $1", [id]);
+
+    await client.query("DELETE FROM trips_destinations WHERE trip_id = $1", [
+      id,
+    ]);
+
+    const results = await client.query(
+      "DELETE FROM trips WHERE id = $1 RETURNING *",
       [id],
     );
-    const results = await pool.query("DELETE FROM trips WHERE id = $1", [id]);
-    res.status(200).json(results.rows);
-    console.log("❌ trip deleted");
+
+    if (results.rows.length === 0) {
+      await client.query("ROLLBACK");
+
+      return res.status(404).json({
+        error: "Trip not found.",
+      });
+    }
+
+    await client.query("COMMIT");
+
+    console.log("❌ Trip deleted");
+
+    return res.status(200).json({
+      message: "Trip deleted successfully.",
+      trip: results.rows[0],
+    });
   } catch (error) {
-    res.status(409).json({ error: error.message });
+    await client.query("ROLLBACK");
+
+    console.error("🚫 Unable to delete trip:", error.message);
+
+    return res.status(409).json({
+      error: error.message,
+    });
+  } finally {
+    client.release();
   }
 };
 
