@@ -1,6 +1,6 @@
 import "./App.css";
 import { useState, useEffect } from "react";
-import { Link, useRoutes } from "react-router";
+import { Link, useRoutes } from "react-router-dom";
 import ReadTrips from "./pages/ReadTrips";
 import CreateTrip from "./pages/CreateTrip";
 import EditTrip from "./pages/EditTrip";
