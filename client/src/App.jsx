@@ -14,6 +14,10 @@ import AddUserToTrip from "./pages/AddUserToTrip";
 
 import Avatar from "./components/Avatar";
 
+const API_URL = import.meta.env.PROD
+  ? "https://onthefly-i4xj.onrender.com"
+  : "";
+
 const Header = ({ user, logout }) => {
   return (
     <header className="header">
@@ -39,7 +43,7 @@ const Header = ({ user, logout }) => {
         </Link>
       </nav>
 
-      <div className="header-user">
+      <nav className="header-user">
         <Avatar className="avatar" user={user} />
 
         <span className="header-username">{user.username}</span>
@@ -47,7 +51,7 @@ const Header = ({ user, logout }) => {
         <button type="button" className="headerBtn" onClick={logout}>
           Logout
         </button>
-      </div>
+      </nav>
     </header>
   );
 };
@@ -61,7 +65,7 @@ const App = () => {
   useEffect(() => {
     const getUser = async () => {
       try {
-        const response = await fetch("/auth/login/success", {
+        const response = await fetch(`${API_URL}/auth/login/success`, {
           credentials: "include",
         });
 
@@ -84,8 +88,12 @@ const App = () => {
     const fetchAppData = async () => {
       try {
         const [tripsResponse, destinationsResponse] = await Promise.all([
-          fetch("/api/trips"),
-          fetch("/api/destinations"),
+          fetch(`${API_URL}/api/trips`, {
+            credentials: "include",
+          }),
+          fetch(`${API_URL}/api/destinations`, {
+            credentials: "include",
+          }),
         ]);
 
         if (!tripsResponse.ok) {
@@ -114,7 +122,7 @@ const App = () => {
 
   const logout = async () => {
     try {
-      const response = await fetch("/auth/logout", {
+      const response = await fetch(`${API_URL}/auth/logout`, {
         method: "GET",
         credentials: "include",
       });
@@ -139,7 +147,7 @@ const App = () => {
       );
     }
 
-    return user?.id ? page : <Login />;
+    return user?.id ? page : <Login API_URL={API_URL} />;
   };
 
   const element = useRoutes([
@@ -149,11 +157,13 @@ const App = () => {
     },
     {
       path: "/trip/new",
-      element: protectedPage(<CreateTrip user={user} />),
+      element: protectedPage(<CreateTrip API_URL={API_URL} user={user} />),
     },
     {
       path: "/edit/:id",
-      element: protectedPage(<EditTrip user={user} data={trips} />),
+      element: protectedPage(
+        <EditTrip API_URL={API_URL} user={user} data={trips} />,
+      ),
     },
     {
       path: "/destinations",
@@ -163,15 +173,19 @@ const App = () => {
     },
     {
       path: "/trip/get/:id",
-      element: protectedPage(<TripDetails user={user} data={trips} />),
+      element: protectedPage(
+        <TripDetails API_URL={API_URL} user={user} data={trips} />,
+      ),
     },
     {
       path: "/destination/new/:trip_id",
-      element: protectedPage(<CreateDestination user={user} />),
+      element: protectedPage(
+        <CreateDestination API_URL={API_URL} user={user} />,
+      ),
     },
     {
       path: "/activity/create/:trip_id",
-      element: protectedPage(<CreateActivity user={user} />),
+      element: protectedPage(<CreateActivity API_URL={API_URL} user={user} />),
     },
     {
       path: "/destinations/add/:destination_id",
@@ -179,7 +193,7 @@ const App = () => {
     },
     {
       path: "/users/add/:trip_id",
-      element: protectedPage(<AddUserToTrip user={user} />),
+      element: protectedPage(<AddUserToTrip API_URL={API_URL} user={user} />),
     },
   ]);
 

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-const CreateTrip = ({ user }) => {
+const CreateTrip = ({ user, API_URL }) => {
   const navigate = useNavigate();
 
   const [trip, setTrip] = useState({
@@ -39,7 +39,7 @@ const CreateTrip = ({ user }) => {
       setIsSubmitting(true);
       setError("");
 
-      const response = await fetch("/api/trips", {
+      const response = await fetch(`${API_URL}/api/trips`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import ActivityBtn from "../components/ActivityBtn";
 import DestinationBtn from "../components/DestinationBtn";
 
-const TripDetails = ({ data = [] }) => {
+const TripDetails = ({ data = [], API_URL }) => {
   const { id } = useParams();
 
   const [activities, setActivities] = useState([]);
@@ -50,9 +50,9 @@ const TripDetails = ({ data = [] }) => {
 
         const [activitiesResponse, destinationsResponse, travelersResponse] =
           await Promise.all([
-            fetch(`/api/activities/${id}`),
-            fetch(`/api/trips-destinations/destinations/${id}`),
-            fetch(`/api/users-trips/users/${id}`, {
+            fetch(`${API_URL}/api/activities/${id}`),
+            fetch(`${API_URL}/api/trips-destinations/destinations/${id}`),
+            fetch(`${API_URL}/api/users-trips/users/${id}`, {
               credentials: "include",
             }),
           ]);
@@ -152,6 +152,7 @@ const TripDetails = ({ data = [] }) => {
                   id={activity.id}
                   activity={activity.activity}
                   num_votes={activity.num_votes}
+                  API_URL={API_URL}
                 />
               ))
             ) : (

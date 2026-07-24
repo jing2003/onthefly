@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 
-const EditTrip = ({ data }) => {
+const EditTrip = ({ data, API_URL }) => {
   const { id } = useParams();
   const [trip, setTrip] = useState({
     id: 0,
@@ -53,7 +53,7 @@ const EditTrip = ({ data }) => {
       body: JSON.stringify(trip),
     };
 
-    fetch("/api/trips/" + id, options);
+    fetch(`${API_URL}/api/trips/${id}`, options);
     window.location.href = "/";
   };
 
@@ -64,7 +64,7 @@ const EditTrip = ({ data }) => {
       method: "DELETE",
     };
 
-    fetch("/api/trips/" + id, options);
+    fetch(`${API_URL}/api/trips/${id}`, options);
     window.location.href = "/";
   };
 

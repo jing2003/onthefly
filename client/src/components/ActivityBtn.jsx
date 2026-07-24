@@ -1,25 +1,48 @@
 import { useState } from "react";
 
-const ActivityBtn = (props) => {
-  const [num_votes, setNumVotes] = useState(props.num_votes);
+const ActivityBtn = ({ id, activity, num_votes, API_URL }) => {
+  const [numVotes, setNumVotes] = useState(num_votes);
+  const [error, setError] = useState("");
 
-  const updateCount = () => {
-    const options = {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ num_votes: num_votes + 1 }),
-    };
+  const updateCount = async () => {
+    try {
+      setError("");
 
-    fetch("/api/activities/" + props.id, options);
-    setNumVotes((num_votes) => num_votes + 1);
+      const response = await fetch(`${API_URL}/api/activities/${id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          num_votes: numVotes + 1,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Unable to update the vote count.");
+      }
+
+      setNumVotes((currentVotes) => currentVotes + 1);
+    } catch (error) {
+      setError(error.message);
+    }
   };
 
   return (
-    <button className="activityBtn" id={props.id} onClick={updateCount}>
-      {props.activity} <br /> {"△ " + num_votes + " Upvotes"}
-    </button>
+    <>
+      <button
+        type="button"
+        className="activityBtn"
+        id={id}
+        onClick={updateCount}
+      >
+        {activity}
+        <br />△ {numVotes} Upvotes
+      </button>
+
+      {error && <p className="error">{error}</p>}
+    </>
   );
 };
 

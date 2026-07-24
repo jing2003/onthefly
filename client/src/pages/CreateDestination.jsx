@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
-const CreateDestination = () => {
+const CreateDestination = ({ API_URL }) => {
   const { trip_id } = useParams();
   const [destination, setDestination] = useState({
     destination: "",
@@ -26,7 +26,7 @@ const CreateDestination = () => {
     event.preventDefault();
 
     try {
-      const destinationResponse = await fetch("/api/destinations", {
+      const destinationResponse = await fetch(`${API_URL}/api/destinations`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,16 +41,19 @@ const CreateDestination = () => {
       const createdDestination = await destinationResponse.json();
       setDestination(createdDestination);
 
-      const tripDestinationResponse = await fetch("/api/trips-destinations", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const tripDestinationResponse = await fetch(
+        `${API_URL}/api/trips-destinations`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            trip_id,
+            destination_id: createdDestination.id,
+          }),
         },
-        body: JSON.stringify({
-          trip_id,
-          destination_id: createdDestination.id,
-        }),
-      });
+      );
 
       if (!tripDestinationResponse.ok) {
         throw new Error("Failed to add destination to trip");

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 
-const AddUserToTrip = () => {
+const AddUserToTrip = ({ API_URL }) => {
   const { trip_id } = useParams();
   const navigate = useNavigate();
 
@@ -23,16 +23,19 @@ const AddUserToTrip = () => {
       setIsSubmitting(true);
       setError("");
 
-      const response = await fetch(`/api/users-trips/create/${trip_id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${API_URL}/api/users-trips/create/${trip_id}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+          body: JSON.stringify({
+            username: trimmedUsername,
+          }),
         },
-        credentials: "include",
-        body: JSON.stringify({
-          username: trimmedUsername,
-        }),
-      });
+      );
 
       const data = await response.json();
 

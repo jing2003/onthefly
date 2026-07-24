@@ -1,10 +1,10 @@
-const Login = () => {
+const Login = ({ API_URL }) => {
   return (
     <main className="Login">
       <h1>On The Fly ✈️</h1>
 
       <div style={{ textAlign: "center" }}>
-        <a href="/auth/github">
+        <a href={`${API_URL}/auth/github`}>
           <button type="button" className="headerBtn">
             🔒 Login via GitHub
           </button>
