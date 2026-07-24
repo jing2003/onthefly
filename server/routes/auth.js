@@ -3,6 +3,8 @@ import passport from "passport";
 
 const router = express.Router();
 
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+
 router.get("/login/success", (req, res) => {
   if (req.user) {
     return res.status(200).json({
@@ -58,10 +60,10 @@ router.get(
 router.get(
   "/github/callback",
   passport.authenticate("github", {
-    failureRedirect: "http://localhost:5173/",
+    failureRedirect: `${CLIENT_URL}/destinations`,
   }),
   (req, res) => {
-    res.redirect("http://localhost:5173/");
+    res.redirect(`${CLIENT_URL}/`);
   },
 );
 

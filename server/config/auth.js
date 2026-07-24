@@ -13,6 +13,7 @@ dotenv.config({
 
 const clientID = process.env.GITHUB_CLIENT_ID;
 const clientSecret = process.env.GITHUB_CLIENT_SECRET;
+const serverURL = process.env.SERVER_URL || "http://localhost:3001";
 
 if (!clientID) {
   throw new Error("GITHUB_CLIENT_ID is missing. Add it to the root .env file.");
@@ -27,7 +28,7 @@ if (!clientSecret) {
 const options = {
   clientID,
   clientSecret,
-  callbackURL: "http://localhost:3001/auth/github/callback",
+  callbackURL: `${serverURL}/auth/github/callback`,
 };
 
 const verify = async (accessToken, refreshToken, profile, callback) => {

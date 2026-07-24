@@ -14,27 +14,36 @@ import userTripRoutes from "./routes/users-trips.js";
 
 const app = express();
 
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "codepath",
-    resave: false,
-    saveUninitialized: true,
-    cookie: {
-      httpOnly: true,
-      sameSite: "lax",
-    },
-  }),
-);
+const isProduction = process.env.NODE_ENV === "production";
+
+const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+
+if (isProduction) {
+  app.set("trust proxy", 1);
+}
 
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: CLIENT_URL,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     credentials: true,
   }),
 );
 
 app.use(express.json());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "codepath",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: isProduction ? "none" : "lax",
+    },
+  }),
+);
 
 app.use(passport.initialize());
 app.use(passport.session());
