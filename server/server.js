@@ -4,6 +4,7 @@ import passport from "passport";
 import session from "express-session";
 
 import { GitHub } from "./config/auth.js";
+import { getPublicUser, requireSessionSecret } from "./utils/auth-security.js";
 
 import authRoutes from "./routes/auth.js";
 import tripRoutes from "./routes/trips.js";
@@ -17,6 +18,8 @@ const app = express();
 const isProduction = process.env.NODE_ENV === "production";
 
 const CLIENT_URL = process.env.CLIENT_URL || "http://localhost:5173";
+
+const SESSION_SECRET = requireSessionSecret(process.env.SESSION_SECRET);
 
 if (isProduction) {
   app.set("trust proxy", 1);
@@ -34,7 +37,7 @@ app.use(express.json());
 
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "codepath",
+    secret: SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -51,7 +54,7 @@ app.use(passport.session());
 passport.use(GitHub);
 
 passport.serializeUser((user, done) => {
-  done(null, user);
+  done(null, getPublicUser(user));
 });
 
 passport.deserializeUser((user, done) => {
